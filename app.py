@@ -16,6 +16,12 @@ apply_cyber_theme()
 df = load_hyper_data()
 
 # --- 3. BARRA LATERAL (Filtros + SIMULADOR + TOOLTIPS) ---
+st.sidebar.image("https://upload.wikimedia.org/wikipedia/commons/thumb/0/0f/Pepsi_logo_2014.svg/512px-Pepsi_logo_2014.svg.png", width=120)
+
+st.sidebar.markdown("# 🔱 Filtros de Red")
+st.sidebar.write("Configura la vista de operaciones.")
+st.sidebar.divider()
+# ... (aquí sigue tu código normal de los expanders) ...
 st.sidebar.markdown("# 🔱 Filtros de Red")
 st.sidebar.write("Configura la vista de operaciones.")
 st.sidebar.divider()
