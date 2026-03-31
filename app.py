@@ -134,7 +134,7 @@ st.markdown("""
 <div class="hero-container">
     <div class="hero-overlay"></div>
     <div class="hero-content">
-        <div class="hero-badge">✨ Inteligencia Artificial</div>
+        <div class="hero-badge">⚙️ Motor de Optimización Logística</div>
         <div class="hero-title">Centro de<br>Comando PepsiCo</div>
         <div class="hero-subtitle">Monitorización de Inventario y Demanda en el Valle de México. Resolviendo logística compleja a través de modelos predictivos y visualización geoespacial en tiempo real.</div>
     </div>
