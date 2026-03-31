@@ -5,23 +5,21 @@ import plotly.express as px
 import plotly.graph_objects as go
 
 # --- IMPORTAMOS NUESTROS PROPIOS MÓDULOS ---
-# Fíjate que ahora importamos 'custom_metric_card'
 from utils.styles import apply_cyber_theme, custom_metric_card
 from utils.data_engine import load_hyper_data
 
 # --- 1. SETUP CYBER-CORPORATIVO MAX ---
-st.set_page_config(page_title="PepsiCo | Command Center MAX", layout="wide", initial_sidebar_state="expanded")
+st.set_page_config(page_title="PepsiCo | Centro de Comando", layout="wide", initial_sidebar_state="expanded")
 
 # --- 2. APLICAR ESTILOS Y CARGAR DATOS ---
 apply_cyber_theme()
 df = load_hyper_data()
 
 # --- 3. PANEL HOLOGRÁFICO LATERAL (Refinado y Organizado) ---
-st.sidebar.markdown("# 🔱 Filtros Titanium")
+st.sidebar.markdown("# 🔱 Filtros de Red")
 st.sidebar.write("Gestiona la monitorización desde la red central.")
 st.sidebar.divider()
 
-# Usamos expanders para limpiar la vista
 with st.sidebar.expander("📍 Nodos Metropolitanos", expanded=True):
     default_zonas = ['Naucalpan', 'Ecatepec', 'Iztapalapa', 'GAM', 'Cuauhtémoc', 'Atizapán', 'Tlalnepantla']
     zona_sel = st.multiselect("Seleccionar Nodos:", options=list(df['Ubicación'].unique()), default=default_zonas, label_visibility="collapsed")
@@ -34,7 +32,6 @@ with st.sidebar.expander("⏱️ Ventana de Análisis", expanded=True):
     max_date = df['Fecha'].max().date()
     date_range = st.date_input("Rango temporal:", value=(min_date, max_date), min_value=min_date, max_value=max_date, label_visibility="collapsed")
 
-# Lógica de fechas (Streamlit devuelve 1 o 2 valores dependiendo de si el usuario ya hizo clic)
 if len(date_range) == 2:
     start_date, end_date = date_range
 else:
@@ -43,7 +40,6 @@ else:
 start_date = pd.to_datetime(start_date)
 end_date = pd.to_datetime(end_date)
 
-# Filtro Maestro Multivariable
 df_f = df[
     (df['Ubicación'].isin(zona_sel)) & 
     (df['Producto'].isin(prod_sel)) &
@@ -51,14 +47,12 @@ df_f = df[
     (df['Fecha'] <= end_date)
 ]
 
-# Validación de seguridad
 if df_f.empty:
     st.warning("⚠️ No hay datos para los filtros seleccionados. Amplía el rango o selecciona otros nodos.")
     st.stop()
 
-# Espaciado extra en sidebar
 st.sidebar.markdown("<br><br><br><br>", unsafe_allow_html=True)
-st.sidebar.caption("© 2026 PepsiCo Intelligence | v1.0 Titanium")
+st.sidebar.caption("© 2026 PepsiCo Intelligence | Análisis de Datos")
 
 
 # --- 4. SECCIÓN 0: ENCABEZADO CENTRAL PROFESIONAL ---
@@ -66,50 +60,47 @@ with st.container():
     h_logo, h_title, h_stats = st.columns([1, 3, 1])
     
     with h_logo:
-        # Logo centrado arriba
         st.image("https://upload.wikimedia.org/wikipedia/commons/thumb/a/a6/PepsiCo_logo.svg/1024px-PepsiCo_logo.svg.png", width=120)
     
     with h_title:
-        # Título sofisticado
+        # TÍTULO CORREGIDO: Más sobrio y descriptivo
         st.markdown("""
         <div style="text-align: center;">
-            <h1 style="margin-bottom: 0px; font-weight: 700;">COMMAND CENTER TITANIUM</h1>
-            <p style="color: #94a3b8; font-size: 1.1rem; margin-top: 5px;">Sistema de Monitorización de Operaciones | Valle de México</p>
+            <h1 style="margin-bottom: 0px; font-weight: 700;">Centro de Comando PepsiCo</h1>
+            <p style="color: #94a3b8; font-size: 1.1rem; margin-top: 5px;">Monitorización de Inventario y Demanda | Zona Metropolitana</p>
         </div>
         """, unsafe_allow_html=True)
 
     with h_stats:
-        # Una pequeña estadística rápida
         st.caption(f"Filtros Activos:<br>**{len(zona_sel)}** Nodos<br>**{len(prod_sel)}** SKUs", unsafe_allow_html=True)
 st.divider()
 
 
-# --- 5. BLOQUE DE KPIs: USANDO TARJETAS PERSONALIZADAS ---
+# --- 5. BLOQUE DE KPIs ---
 st.markdown("### 📊 Indicadores Clave de Red")
 k1, k2, k3, k4 = st.columns(4)
 
 vol_sum = df_f['Ventas'].sum()
 with k1:
-    # Card 1: Volumen total
     custom_metric_card("Volumen Total", f"{vol_sum:,} u", delta=f"{len(df_f)} registros procesados", is_accent=False)
 
 nodos_sat = len(zona_sel)
 with k2:
-    # Card 2: Nodos (con delta de estatus)
     custom_metric_card("Nodos Activos", f"{nodos_sat} / 25", delta="📡 Red Central Estable", delta_positive=True, is_accent=False)
 
 pico_max = df_f['Ventas'].max()
 with k3:
-    # Card 3: Pico Máximo Detectado (Usamos el acento cian aquí)
     custom_metric_card("Pico de Demanda", f"{pico_max} u", delta="⚠️ Alerta Nivel 1 activa" if pico_max > 150 else "⚡ Normal", delta_positive=pico_max <= 150, is_accent=True)
 
 inventario_est = vol_sum * 22.5
 with k4:
-    # Card 4: Inventario (con delta de divisa)
     custom_metric_card("Inventario Est.", f"${inventario_est:,.0f}", delta="Pesos Mexicanos (MXN)", is_accent=False)
 
 
-# --- 6. BLOQUE 1: MAPA Y RADAR MULTIVARIABLE (Mejorando contenedores y márgenes) ---
+# DEFINIMOS LA PALETA DE COLORES GLOBAL PARA TODAS LAS GRÁFICAS
+paleta_unificada = ['#161b22', '#1e293b', '#007a99', '#00d2ff']
+
+# --- 6. BLOQUE 1: MAPA Y RADAR MULTIVARIABLE ---
 st.divider()
 st.markdown("### 📍 Módulo Geoespacial y Multivariable")
 c_map, c_radar = st.columns([2, 1])
@@ -118,9 +109,8 @@ with c_map:
     st.write("Visualización espacial de nodos y volumen de ventas.")
     fig_map = px.scatter_mapbox(df_f.groupby('Ubicación', as_index=False).agg({'Ventas':'sum', 'lat':'first', 'lon':'first'}), 
                                 lat='lat', lon='lon', size='Ventas', 
-                                color='Ventas', color_continuous_scale='teal',
+                                color='Ventas', color_continuous_scale=paleta_unificada,
                                 hover_name='Ubicación', zoom=9.2, mapbox_style="carto-darkmatter")
-    # Tweakmargins y colores de Plotly para que no resalten
     fig_map.update_layout(
         margin={"r":0,"t":0,"l":0,"b":0}, 
         paper_bgcolor='rgba(0,0,0,0)', 
@@ -133,23 +123,25 @@ with c_radar:
     st.write("Análisis Multivariable de Eficiencia.")
     categorias = ['Demanda Base', 'Penetración', 'Estabilidad', 'Margen Ops', 'Rotación']
     valores = [np.random.randint(70, 100) for _ in range(5)]
-    fig_radar = go.Figure(data=go.Scatterpolar(r=valores, theta=categorias, fill='toself', fillcolor='rgba(0, 210, 255, 0.1)', line=dict(color='#00d2ff', width=2)))
-    fig_radar.update_layout(polar=dict(radialaxis=dict(visible=True, range=[0, 100], color='gray')), showlegend=False, paper_bgcolor='rgba(0,0,0,0)', font=dict(color='white', size=11))
+    fig_radar = go.Figure(data=go.Scatterpolar(r=valores, theta=categorias, fill='toself', fillcolor='rgba(0, 210, 255, 0.15)', line=dict(color='#00d2ff', width=2)))
+    fig_radar.update_layout(polar=dict(radialaxis=dict(visible=True, range=[0, 100], color='gray'), bgcolor='rgba(0,0,0,0)'), showlegend=False, paper_bgcolor='rgba(0,0,0,0)', font=dict(color='#e2e8f0', size=11))
     st.plotly_chart(fig_radar, use_container_width=True)
 
 
-# --- 7. BLOQUE 2: TREEMAP MASIVO (Refinado) ---
+# --- 7. BLOQUE 2: TREEMAP MASIVO (CORREGIDO E INTEGRADO) ---
 st.divider()
 st.markdown("### 🟦 Topografía de Mercado (Dominancia)")
-st.write("Cuota de mercado por zona y SKU (Treemap). Los cuadros mayores indican mayor volumen.")
+st.write("Cuota de mercado por zona y SKU. Los cuadros mayores indican mayor volumen.")
 
 fig_tree = px.treemap(df_f, path=[px.Constant("Valle de México"), 'Ubicación', 'Producto'], 
-                      values='Ventas', color='Ventas', color_continuous_scale='Blues')
-fig_tree.update_layout(margin=dict(t=10, l=10, r=10, b=10), paper_bgcolor='rgba(0,0,0,0)', font=dict(color='white', size=11))
+                      values='Ventas', color='Ventas', color_continuous_scale=paleta_unificada)
+# El secreto de la integración: márgenes en 0, color de letra gris claro y bordes del color del fondo de la app
+fig_tree.update_layout(margin=dict(t=10, l=10, r=10, b=10), paper_bgcolor='rgba(0,0,0,0)', font=dict(color='#e2e8f0', size=13))
+fig_tree.update_traces(marker=dict(line=dict(color='#0d1117', width=3)), root_color="#0d1117")
 st.plotly_chart(fig_tree, use_container_width=True)
 
 
-# --- 8. BLOQUE 3: ANÁLISIS TEMPORAL Y ANOMALÍAS (Refinado) ---
+# --- 8. BLOQUE 3: ANÁLISIS TEMPORAL Y ANOMALÍAS ---
 st.divider()
 st.markdown("### ⏱️ Análisis de Series Temporales y Detección de Shocks")
 c_heat, c_anom = st.columns([1, 1.5])
@@ -159,8 +151,8 @@ with c_heat:
     orden_dias = ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado', 'Domingo']
     df_heat = df_f.groupby('Dia_Semana')['Ventas'].mean().reindex(orden_dias).reset_index()
     fig_heat = px.density_heatmap(df_f, x='Dia_Semana', y='Producto', z='Ventas', histfunc='avg', 
-                                  color_continuous_scale='tealgrn', category_orders={'Dia_Semana': orden_dias})
-    fig_heat.update_layout(paper_bgcolor='rgba(0,0,0,0)', plot_bgcolor='rgba(0,0,0,0)', font=dict(color='white', size=11),
+                                  color_continuous_scale=paleta_unificada, category_orders={'Dia_Semana': orden_dias})
+    fig_heat.update_layout(paper_bgcolor='rgba(0,0,0,0)', plot_bgcolor='rgba(0,0,0,0)', font=dict(color='#e2e8f0', size=11),
                             coloraxis_colorbar=dict(title=dict(font=dict(color='white')), tickfont=dict(color='white')))
     st.plotly_chart(fig_heat, use_container_width=True)
 
@@ -173,12 +165,12 @@ with c_anom:
     fig_anom = go.Figure()
     fig_anom.add_trace(go.Scatter(x=df_g['Fecha'], y=df_g['Ventas'], mode='lines', name='Flujo Normal', line=dict(color='#00d2ff', width=2)))
     anomalias = df_g[df_g['Anomalia'] == True]
-    fig_anom.add_trace(go.Scatter(x=anomalias['Fecha'], y=anomalias['Ventas'], mode='markers', name='Shock de Mercado', marker=dict(color='#ff4b4b', size=10, symbol='circle-open')))
-    fig_anom.update_layout(paper_bgcolor='rgba(0,0,0,0)', plot_bgcolor='rgba(0,0,0,0)', font=dict(color='white', size=11), hovermode="x unified")
+    fig_anom.add_trace(go.Scatter(x=anomalias['Fecha'], y=anomalias['Ventas'], mode='markers', name='Shock de Mercado', marker=dict(color='#00d2ff', size=10, symbol='circle-open')))
+    fig_anom.update_layout(paper_bgcolor='rgba(0,0,0,0)', plot_bgcolor='rgba(0,0,0,0)', font=dict(color='#e2e8f0', size=11), hovermode="x unified")
     st.plotly_chart(fig_anom, use_container_width=True)
 
 
-# --- 9. BLOQUE 4: TERMINAL LOGÍSTICA (Limpia) ---
+# --- 9. BLOQUE 4: TERMINAL LOGÍSTICA ---
 st.divider()
 with st.expander("### 📋 Terminal de Acción Logística", expanded=True):
     resumen = df_f.groupby(['Ubicación', 'Producto']).agg(Ventas_Totales=('Ventas', 'sum'), Promedio_Diario=('Ventas', 'mean')).reset_index()
@@ -188,7 +180,6 @@ with st.expander("### 📋 Terminal de Acción Logística", expanded=True):
 
     c_tabla, c_export = st.columns([3, 1])
     with c_tabla:
-        # Usamos pandas styler para colorear el semáforo
         st.dataframe(resumen.style.map(lambda x: 'color: #ff4b4b' if '🔴' in str(x) else ('color: #00e676' if '🟢' in str(x) else ''), subset=['Estatus']), use_container_width=True)
 
     with c_export:
