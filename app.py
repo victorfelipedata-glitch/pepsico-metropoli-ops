@@ -4,6 +4,7 @@ import numpy as np
 import plotly.express as px
 import plotly.graph_objects as go
 from sklearn.linear_model import LinearRegression
+from st_aggrid import AgGrid, GridOptionsBuilder, ColumnsAutoSizeMode
 
 # --- IMPORTAMOS NUESTROS PROPIOS MÓDULOS ---
 from utils.styles import apply_cyber_theme, custom_metric_card
@@ -213,25 +214,40 @@ with tab_predict:
 
 
 # ==========================================
-# PESTAÑA 3: GESTIÓN LOGÍSTICA
+# PESTAÑA 3: GESTIÓN LOGÍSTICA (CON AG-GRID ENTERPRISE)
 # ==========================================
 with tab_logistics:
-    st.markdown("### 📋 Terminal de Acción Logística")
-    st.write("Gestión de abastecimiento por punto de venta basado en el rendimiento histórico.")
+    st.markdown("### 📋 Terminal de Acción Logística Avanzada")
+    st.write("Sistema de gestión interactivo. Usa el menú lateral de la tabla para agrupar, filtrar y exportar como en Excel.")
+    
     resumen = df_f.groupby(['Ubicación', 'Producto']).agg(Ventas_Totales=('Ventas', 'sum'), Promedio_Diario=('Ventas', 'mean')).reset_index()
     resumen['Promedio_Diario'] = resumen['Promedio_Diario'].round(2)
-    resumen['Estatus'] = np.where(resumen['Promedio_Diario'] < 30, '🔴 Riesgo Desabasto', '🟢 Óptimo')
-    resumen['Acción Sugerida'] = np.where(resumen['Estatus'] == '🔴 Riesgo Desabasto', 'Aumentar Frecuencia', 'Mantener Surtido')
+    resumen['Estatus'] = np.where(resumen['Promedio_Diario'] < 30, '🔴 Riesgo', '🟢 Óptimo')
+    resumen['Acción'] = np.where(resumen['Estatus'] == '🔴 Riesgo', 'Aumentar', 'Mantener')
 
-    c_tabla, c_export = st.columns([3, 1])
-    with c_tabla:
-        st.dataframe(resumen.style.map(lambda x: 'color: #f87171' if '🔴' in str(x) else ('color: #4ade80' if '🟢' in str(x) else ''), subset=['Estatus']), use_container_width=True)
+    # --- CONFIGURACIÓN MAGIA AG-GRID ---
+    gb = GridOptionsBuilder.from_dataframe(resumen)
+    gb.configure_pagination(paginationAutoPageSize=True) # Paginación automática
+    gb.configure_side_bar() # Activa el panel lateral de filtros avanzados tipo Excel
+    gb.configure_selection('multiple', use_checkbox=True) # Permite seleccionar filas con checkboxes
+    gb.configure_default_column(groupable=True, value=True, enableRowGroup=True, aggFunc='sum', editable=True)
+    gridOptions = gb.build()
 
+    # --- RENDERIZADO DE LA TABLA ---
+    AgGrid(
+        resumen,
+        gridOptions=gridOptions,
+        enable_enterprise_modules=True,
+        theme='streamlit', # Se adapta automáticamente a tu fondo oscuro
+        columns_auto_size_mode=ColumnsAutoSizeMode.FIT_CONTENTS,
+        update_mode='MODEL_CHANGED'
+    )
+    
+    st.divider()
+    c_empty, c_export = st.columns([3, 1])
     with c_export:
-        st.markdown("#### Exportar Base de Datos")
         csv = resumen.to_csv(index=False).encode('utf-8')
-        st.download_button(label="📥 Descargar Reporte CSV", data=csv, file_name='pepsico_reporte_metropolitano.csv', mime='text/csv')
-        st.info("Formato listo para integración con SAP/Excel.")
+        st.download_button(label="📥 Exportar Matriz a SAP", data=csv, file_name='logistica_pepsico_matriz.csv', mime='text/csv')
 
 
 # --- FOOTER CLASIFICADO ---
