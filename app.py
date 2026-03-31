@@ -9,7 +9,7 @@ from sklearn.linear_model import LinearRegression
 from utils.styles import apply_cyber_theme, custom_metric_card
 from utils.data_engine import load_hyper_data
 
-# --- 1. SETUP CYBER-CORPORATIVO MAX ---
+# --- 1. SETUP CORPORATIVO ---
 st.set_page_config(page_title="PepsiCo | Centro de Comando", layout="wide", initial_sidebar_state="expanded")
 
 # --- 2. APLICAR ESTILOS Y CARGAR DATOS ---
@@ -66,7 +66,7 @@ if df_f.empty:
     st.stop()
 
 
-# --- 4. SECCIÓN 0: ENCABEZADO CENTRAL PROFESIONAL ---
+# --- 4. ENCABEZADO CENTRAL PROFESIONAL ---
 with st.container():
     h_title, h_stats = st.columns([4, 1])
     
@@ -88,132 +88,136 @@ st.info("💡 **Análisis del Sistema:** " +
 
 st.divider()
 
+# DEFINIMOS LA NUEVA PALETA CORPORATIVA (Menos neón, más profesional)
+paleta_unificada = ['#0f172a', '#1e293b', '#0284c7', '#38bdf8']
+color_acento = '#38bdf8' # Azul acero/cielo
 
-# --- 5. BLOQUE DE KPIs ---
-st.markdown("### 📊 Indicadores Clave de Red")
-k1, k2, k3, k4 = st.columns(4)
+# --- 5. ESTRUCTURA DE PESTAÑAS (TABS) ---
+tab_monitor, tab_predict, tab_logistics = st.tabs(["🌐 Monitor Global", "🧠 Inteligencia Predictiva", "📋 Gestión Logística"])
 
-vol_sum = df_f['Ventas'].sum()
-with k1:
-    custom_metric_card("Volumen Total", f"{int(vol_sum):,} u", delta=f"{len(df_f)} registros procesados", is_accent=False, help_text="Suma total de unidades desplazadas en el periodo y zonas seleccionadas.")
+# ==========================================
+# PESTAÑA 1: MONITOR GLOBAL
+# ==========================================
+with tab_monitor:
+    st.markdown("### 📊 Indicadores Clave de Red")
+    k1, k2, k3, k4 = st.columns(4)
 
-nodos_sat = len(zona_sel)
-with k2:
-    custom_metric_card("Nodos Activos", f"{nodos_sat} / 25", delta="📡 Red Central Estable", delta_positive=True, is_accent=False, help_text="Cantidad de centros de distribución o zonas activas bajo monitoreo.")
+    vol_sum = df_f['Ventas'].sum()
+    with k1:
+        custom_metric_card("Volumen Total", f"{int(vol_sum):,} u", delta=f"{len(df_f)} registros procesados", is_accent=False, help_text="Suma total de unidades desplazadas.")
 
-pico_max = int(df_f['Ventas'].max())
-with k3:
-    custom_metric_card("Pico de Demanda", f"{pico_max} u", delta="⚠️ Alerta Nivel 1 activa" if pico_max > 150 else "⚡ Normal", delta_positive=pico_max <= 150, is_accent=True, help_text="El valor de venta individual más alto detectado en un solo registro.")
+    nodos_sat = len(zona_sel)
+    with k2:
+        custom_metric_card("Nodos Activos", f"{nodos_sat} / 25", delta="📡 Red Central Estable", delta_positive=True, is_accent=False, help_text="Cantidad de centros de distribución activos.")
 
-inventario_est = vol_sum * 22.5
-with k4:
-    custom_metric_card("Inventario Est.", f"${int(inventario_est):,.0f}", delta="Pesos Mexicanos (MXN)", is_accent=False, help_text="Valorización aproximada del inventario en tránsito basada en el volumen actual.")
+    pico_max = int(df_f['Ventas'].max())
+    with k3:
+        custom_metric_card("Pico de Demanda", f"{pico_max} u", delta="⚠️ Alerta Nivel 1" if pico_max > 150 else "⚡ Normal", delta_positive=pico_max <= 150, is_accent=True, help_text="El valor de venta individual más alto detectado.")
 
+    inventario_est = vol_sum * 22.5
+    with k4:
+        custom_metric_card("Inventario Est.", f"${int(inventario_est):,.0f}", delta="Pesos Mexicanos (MXN)", is_accent=False, help_text="Valorización aproximada del inventario.")
 
-paleta_unificada = ['#161b22', '#1e293b', '#007a99', '#00d2ff']
+    st.divider()
+    st.markdown("### 📍 Módulo Geoespacial y Multivariable")
+    c_map, c_radar = st.columns([2, 1])
 
-# --- 6. BLOQUE 1: MAPA Y RADAR MULTIVARIABLE ---
-st.divider()
-st.markdown("### 📍 Módulo Geoespacial y Multivariable")
-c_map, c_radar = st.columns([2, 1])
+    with c_map:
+        st.write("Visualización espacial de nodos y volumen de ventas.")
+        fig_map = px.scatter_mapbox(df_f.groupby('Ubicación', as_index=False).agg({'Ventas':'sum', 'lat':'first', 'lon':'first'}), 
+                                    lat='lat', lon='lon', size='Ventas', color='Ventas', color_continuous_scale=paleta_unificada,
+                                    hover_name='Ubicación', zoom=9.2, mapbox_style="carto-darkmatter")
+        fig_map.update_layout(margin={"r":0,"t":0,"l":0,"b":0}, paper_bgcolor='rgba(0,0,0,0)', plot_bgcolor='rgba(0,0,0,0)', coloraxis_colorbar=dict(title=dict(text='Ventas', font=dict(color='white')), tickfont=dict(color='white')))
+        st.plotly_chart(fig_map, use_container_width=True)
 
-with c_map:
-    st.write("Visualización espacial de nodos y volumen de ventas.")
-    fig_map = px.scatter_mapbox(df_f.groupby('Ubicación', as_index=False).agg({'Ventas':'sum', 'lat':'first', 'lon':'first'}), 
-                                lat='lat', lon='lon', size='Ventas', 
-                                color='Ventas', color_continuous_scale=paleta_unificada,
-                                hover_name='Ubicación', zoom=9.2, mapbox_style="carto-darkmatter")
-    fig_map.update_layout(margin={"r":0,"t":0,"l":0,"b":0}, paper_bgcolor='rgba(0,0,0,0)', plot_bgcolor='rgba(0,0,0,0)', coloraxis_colorbar=dict(title=dict(text='Ventas', font=dict(color='white')), tickfont=dict(color='white')))
-    st.plotly_chart(fig_map, use_container_width=True)
+    with c_radar:
+        st.write("Análisis Multivariable de Eficiencia.")
+        categorias = ['Demanda Base', 'Penetración', 'Estabilidad', 'Margen Ops', 'Rotación']
+        valores = [np.random.randint(70, 100) for _ in range(5)]
+        fig_radar = go.Figure(data=go.Scatterpolar(r=valores, theta=categorias, fill='toself', fillcolor='rgba(56, 189, 248, 0.15)', line=dict(color=color_acento, width=2)))
+        fig_radar.update_layout(polar=dict(radialaxis=dict(visible=True, range=[0, 100], color='gray'), bgcolor='rgba(0,0,0,0)'), showlegend=False, paper_bgcolor='rgba(0,0,0,0)', font=dict(color='#e2e8f0', size=11))
+        st.plotly_chart(fig_radar, use_container_width=True)
 
-with c_radar:
-    st.write("Análisis Multivariable de Eficiencia.")
-    categorias = ['Demanda Base', 'Penetración', 'Estabilidad', 'Margen Ops', 'Rotación']
-    valores = [np.random.randint(70, 100) for _ in range(5)]
-    fig_radar = go.Figure(data=go.Scatterpolar(r=valores, theta=categorias, fill='toself', fillcolor='rgba(0, 210, 255, 0.15)', line=dict(color='#00d2ff', width=2)))
-    fig_radar.update_layout(polar=dict(radialaxis=dict(visible=True, range=[0, 100], color='gray'), bgcolor='rgba(0,0,0,0)'), showlegend=False, paper_bgcolor='rgba(0,0,0,0)', font=dict(color='#e2e8f0', size=11))
-    st.plotly_chart(fig_radar, use_container_width=True)
+    st.divider()
+    st.markdown("### 🟦 Topografía de Mercado (Dominancia)", help="Jerarquía de ventas por zona (cuadros grandes) y producto (cuadros internos).")
+    fig_tree = px.treemap(df_f, path=[px.Constant("Valle de México"), 'Ubicación', 'Producto'], values='Ventas', color='Ventas', color_continuous_scale=paleta_unificada)
+    fig_tree.update_layout(margin=dict(t=10, l=10, r=10, b=10), paper_bgcolor='rgba(0,0,0,0)', font=dict(color='#e2e8f0', size=13))
+    fig_tree.update_traces(marker=dict(line=dict(color='#0d1117', width=3)), root_color="#0d1117")
+    st.plotly_chart(fig_tree, use_container_width=True)
 
+# ==========================================
+# PESTAÑA 2: INTELIGENCIA PREDICTIVA
+# ==========================================
+with tab_predict:
+    st.markdown("### ⏱️ Análisis de Series Temporales y Detección de Shocks")
+    c_heat, c_anom = st.columns([1, 1.5])
 
-# --- 7. BLOQUE 2: TREEMAP MASIVO ---
-st.divider()
-st.markdown("### 🟦 Topografía de Mercado (Dominancia)", help="Jerarquía de ventas por zona (cuadros grandes) y producto (cuadros internos).")
-fig_tree = px.treemap(df_f, path=[px.Constant("Valle de México"), 'Ubicación', 'Producto'], values='Ventas', color='Ventas', color_continuous_scale=paleta_unificada)
-fig_tree.update_layout(margin=dict(t=10, l=10, r=10, b=10), paper_bgcolor='rgba(0,0,0,0)', font=dict(color='#e2e8f0', size=13))
-fig_tree.update_traces(marker=dict(line=dict(color='#0d1117', width=3)), root_color="#0d1117")
-st.plotly_chart(fig_tree, use_container_width=True)
+    with c_heat:
+        st.markdown("#### Matriz de Demanda")
+        orden_dias = ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado', 'Domingo']
+        df_heat = df_f.groupby('Dia_Semana')['Ventas'].mean().reindex(orden_dias).reset_index()
+        fig_heat = px.density_heatmap(df_f, x='Dia_Semana', y='Producto', z='Ventas', histfunc='avg', color_continuous_scale=paleta_unificada, category_orders={'Dia_Semana': orden_dias})
+        fig_heat.update_layout(paper_bgcolor='rgba(0,0,0,0)', plot_bgcolor='rgba(0,0,0,0)', font=dict(color='#e2e8f0', size=11), coloraxis_colorbar=dict(title=dict(font=dict(color='white')), tickfont=dict(color='white')))
+        st.plotly_chart(fig_heat, use_container_width=True)
 
-
-# --- 8. BLOQUE 3: ANÁLISIS TEMPORAL Y ANOMALÍAS ---
-st.divider()
-st.markdown("### ⏱️ Análisis de Series Temporales y Detección de Shocks")
-c_heat, c_anom = st.columns([1, 1.5])
-
-with c_heat:
-    st.markdown("#### Matriz de Demanda")
-    orden_dias = ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado', 'Domingo']
-    df_heat = df_f.groupby('Dia_Semana')['Ventas'].mean().reindex(orden_dias).reset_index()
-    fig_heat = px.density_heatmap(df_f, x='Dia_Semana', y='Producto', z='Ventas', histfunc='avg', color_continuous_scale=paleta_unificada, category_orders={'Dia_Semana': orden_dias})
-    fig_heat.update_layout(paper_bgcolor='rgba(0,0,0,0)', plot_bgcolor='rgba(0,0,0,0)', font=dict(color='#e2e8f0', size=11), coloraxis_colorbar=dict(title=dict(font=dict(color='white')), tickfont=dict(color='white')))
-    st.plotly_chart(fig_heat, use_container_width=True)
-
-with c_anom:
-    st.markdown("#### Detección Estadística de Anomalías")
-    df_g = df_f.groupby('Fecha')['Ventas'].sum().reset_index()
-    media, desviacion = df_g['Ventas'].mean(), df_g['Ventas'].std()
-    df_g['Anomalia'] = np.where(abs(df_g['Ventas'] - media) > (2 * desviacion), True, False)
-    
-    fig_anom = go.Figure()
-    fig_anom.add_trace(go.Scatter(x=df_g['Fecha'], y=df_g['Ventas'], mode='lines', name='Flujo Normal', line=dict(color='#00d2ff', width=2)))
-    anomalias = df_g[df_g['Anomalia'] == True]
-    fig_anom.add_trace(go.Scatter(x=anomalias['Fecha'], y=anomalias['Ventas'], mode='markers', name='Shock de Mercado', marker=dict(color='#00d2ff', size=10, symbol='circle-open')))
-    fig_anom.update_layout(paper_bgcolor='rgba(0,0,0,0)', plot_bgcolor='rgba(0,0,0,0)', font=dict(color='#e2e8f0', size=11), hovermode="x unified")
-    st.plotly_chart(fig_anom, use_container_width=True)
-
-
-# --- NUEVO BLOQUE: PROYECCIÓN PREDICTIVA CON MACHINE LEARNING ---
-st.divider()
-st.markdown("### 🧠 Proyección Predictiva (Machine Learning)", help="Modelo de Regresión Lineal entrenado en tiempo real para pronosticar la demanda a 7 días.")
-
-df_ml = df_f.groupby('Fecha')['Ventas'].sum().reset_index()
-df_ml['Dias_Numericos'] = (df_ml['Fecha'] - df_ml['Fecha'].min()).dt.days
-
-if len(df_ml) > 3:
-    X = df_ml[['Dias_Numericos']]
-    y = df_ml['Ventas']
-    
-    modelo = LinearRegression()
-    modelo.fit(X, y)
-    
-    ultimo_dia = df_ml['Dias_Numericos'].max()
-    dias_futuros_num = pd.DataFrame({'Dias_Numericos': range(ultimo_dia + 1, ultimo_dia + 8)})
-    fechas_futuras = pd.date_range(start=df_ml['Fecha'].max() + pd.Timedelta(days=1), periods=7)
-    
-    predicciones = modelo.predict(dias_futuros_num)
-    tendencia = "al alza 📈" if modelo.coef_[0] > 0 else "a la baja 📉"
-    
-    c_pred, c_texto = st.columns([2, 1])
-    
-    with c_pred:
-        fig_ml = go.Figure()
-        fig_ml.add_trace(go.Scatter(x=df_ml['Fecha'], y=df_ml['Ventas'], mode='lines', name='Histórico Real', line=dict(color='#94a3b8', width=2)))
-        fig_ml.add_trace(go.Scatter(x=df_ml['Fecha'], y=modelo.predict(X), mode='lines', name='Ajuste ML', line=dict(color='#007a99', width=2, dash='dot')))
-        fig_ml.add_trace(go.Scatter(x=fechas_futuras, y=predicciones, mode='lines+markers', name='Pronóstico 7 Días', line=dict(color='#00d2ff', width=3), marker=dict(size=6)))
+    with c_anom:
+        st.markdown("#### Detección Estadística de Anomalías")
+        df_g = df_f.groupby('Fecha')['Ventas'].sum().reset_index()
+        media, desviacion = df_g['Ventas'].mean(), df_g['Ventas'].std()
+        df_g['Anomalia'] = np.where(abs(df_g['Ventas'] - media) > (2 * desviacion), True, False)
         
-        fig_ml.update_layout(paper_bgcolor='rgba(0,0,0,0)', plot_bgcolor='rgba(0,0,0,0)', font=dict(color='#e2e8f0', size=11), hovermode="x unified", margin=dict(t=10, b=10, l=10, r=10))
-        st.plotly_chart(fig_ml, use_container_width=True)
+        fig_anom = go.Figure()
+        fig_anom.add_trace(go.Scatter(x=df_g['Fecha'], y=df_g['Ventas'], mode='lines', name='Flujo Normal', line=dict(color=color_acento, width=2)))
+        anomalias = df_g[df_g['Anomalia'] == True]
+        fig_anom.add_trace(go.Scatter(x=anomalias['Fecha'], y=anomalias['Ventas'], mode='markers', name='Shock de Mercado', marker=dict(color='#f87171', size=10, symbol='circle-open'))) # Rojo para alertas
+        fig_anom.update_layout(paper_bgcolor='rgba(0,0,0,0)', plot_bgcolor='rgba(0,0,0,0)', font=dict(color='#e2e8f0', size=11), hovermode="x unified")
+        st.plotly_chart(fig_anom, use_container_width=True)
+
+    st.divider()
+    st.markdown("### 🧠 Proyección Predictiva (Machine Learning)", help="Modelo de Regresión Lineal entrenado en tiempo real para pronosticar la demanda a 7 días.")
+
+    df_ml = df_f.groupby('Fecha')['Ventas'].sum().reset_index()
+    df_ml['Dias_Numericos'] = (df_ml['Fecha'] - df_ml['Fecha'].min()).dt.days
+
+    if len(df_ml) > 3:
+        X = df_ml[['Dias_Numericos']]
+        y = df_ml['Ventas']
         
-    with c_texto:
-        st.markdown("#### Resultado del Modelo")
-        st.write("El algoritmo analiza la dispersión histórica y calcula la línea de mejor ajuste para proyectar requerimientos logísticos.")
-        st.info(f"**Insight Predictivo:**\nLa tendencia matemática para esta red va **{tendencia}**.\n\nPara el día {fechas_futuras[-1].strftime('%d de %b')}, el modelo estima una demanda de **{int(predicciones[-1])} unidades**.")
-else:
-    st.warning("⚠️ No hay suficientes datos en este rango para entrenar el modelo predictivo. Amplía la ventana de análisis.")
+        modelo = LinearRegression()
+        modelo.fit(X, y)
+        
+        ultimo_dia = df_ml['Dias_Numericos'].max()
+        dias_futuros_num = pd.DataFrame({'Dias_Numericos': range(ultimo_dia + 1, ultimo_dia + 8)})
+        fechas_futuras = pd.date_range(start=df_ml['Fecha'].max() + pd.Timedelta(days=1), periods=7)
+        
+        predicciones = modelo.predict(dias_futuros_num)
+        tendencia = "al alza 📈" if modelo.coef_[0] > 0 else "a la baja 📉"
+        
+        c_pred, c_texto = st.columns([2, 1])
+        
+        with c_pred:
+            fig_ml = go.Figure()
+            fig_ml.add_trace(go.Scatter(x=df_ml['Fecha'], y=df_ml['Ventas'], mode='lines', name='Histórico Real', line=dict(color='#94a3b8', width=2)))
+            fig_ml.add_trace(go.Scatter(x=df_ml['Fecha'], y=modelo.predict(X), mode='lines', name='Ajuste ML', line=dict(color='#0284c7', width=2, dash='dot')))
+            fig_ml.add_trace(go.Scatter(x=fechas_futuras, y=predicciones, mode='lines+markers', name='Pronóstico 7 Días', line=dict(color=color_acento, width=3), marker=dict(size=6)))
+            
+            fig_ml.update_layout(paper_bgcolor='rgba(0,0,0,0)', plot_bgcolor='rgba(0,0,0,0)', font=dict(color='#e2e8f0', size=11), hovermode="x unified", margin=dict(t=10, b=10, l=10, r=10))
+            st.plotly_chart(fig_ml, use_container_width=True)
+            
+        with c_texto:
+            st.markdown("#### Resultado del Modelo")
+            st.write("El algoritmo analiza la dispersión histórica y calcula la línea de mejor ajuste para proyectar requerimientos logísticos.")
+            st.info(f"**Insight Predictivo:**\nLa tendencia matemática para esta red va **{tendencia}**.\n\nPara el día {fechas_futuras[-1].strftime('%d de %b')}, el modelo estima una demanda de **{int(predicciones[-1])} unidades**.")
+    else:
+        st.warning("⚠️ No hay suficientes datos en este rango para entrenar el modelo predictivo. Amplía la ventana de análisis.")
 
 
-# --- 9. BLOQUE 4: TERMINAL LOGÍSTICA ---
-st.divider()
-with st.expander("### 📋 Terminal de Acción Logística", expanded=True):
+# ==========================================
+# PESTAÑA 3: GESTIÓN LOGÍSTICA
+# ==========================================
+with tab_logistics:
+    st.markdown("### 📋 Terminal de Acción Logística")
+    st.write("Gestión de abastecimiento por punto de venta basado en el rendimiento histórico.")
     resumen = df_f.groupby(['Ubicación', 'Producto']).agg(Ventas_Totales=('Ventas', 'sum'), Promedio_Diario=('Ventas', 'mean')).reset_index()
     resumen['Promedio_Diario'] = resumen['Promedio_Diario'].round(2)
     resumen['Estatus'] = np.where(resumen['Promedio_Diario'] < 30, '🔴 Riesgo Desabasto', '🟢 Óptimo')
@@ -221,7 +225,7 @@ with st.expander("### 📋 Terminal de Acción Logística", expanded=True):
 
     c_tabla, c_export = st.columns([3, 1])
     with c_tabla:
-        st.dataframe(resumen.style.map(lambda x: 'color: #ff4b4b' if '🔴' in str(x) else ('color: #00e676' if '🟢' in str(x) else ''), subset=['Estatus']), use_container_width=True)
+        st.dataframe(resumen.style.map(lambda x: 'color: #f87171' if '🔴' in str(x) else ('color: #4ade80' if '🟢' in str(x) else ''), subset=['Estatus']), use_container_width=True)
 
     with c_export:
         st.markdown("#### Exportar Base de Datos")
@@ -230,11 +234,11 @@ with st.expander("### 📋 Terminal de Acción Logística", expanded=True):
         st.info("Formato listo para integración con SAP/Excel.")
 
 
-# --- 10. FOOTER CLASIFICADO ---
+# --- FOOTER CLASIFICADO ---
 st.divider()
 st.markdown("""
 <div style="text-align: center; color: #94a3b8; font-size: 0.9rem; margin-top: 20px;">
     © 2026 PepsiCo Intelligence System <br>
-    Modelo de monitorización desarrollado por <b style="color: #00d2ff;">Data Analyst Víctor Antonio</b>
+    Modelo de monitorización desarrollado por <b style="color: #38bdf8;">Data Analyst Víctor Antonio</b>
 </div>
 """, unsafe_allow_html=True)
