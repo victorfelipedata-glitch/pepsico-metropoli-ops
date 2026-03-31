@@ -67,19 +67,82 @@ if df_f.empty:
     st.stop()
 
 
-# --- 4. ENCABEZADO CENTRAL PROFESIONAL ---
-with st.container():
-    h_title, h_stats = st.columns([4, 1])
-    
-    with h_title:
-        st.markdown("""
-        <div>
-            <h1 style="margin-bottom: 0px; font-weight: 700;">Centro de Comando PepsiCo</h1>
-            <p style="color: #94a3b8; font-size: 1.1rem; margin-top: 5px;">Monitorización de Inventario y Demanda | Zona Metropolitana</p>
-        </div>
-        """, unsafe_allow_html=True)
-    with h_stats:
-        st.caption(f"Filtros Activos:<br>**{len(zona_sel)}** Nodos<br>**{len(prod_sel)}** SKUs", unsafe_allow_html=True)
+# --- 4. ENCABEZADO CENTRAL ESTILO SAMSUNG (HERO BANNER) ---
+st.markdown("""
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;500;800&display=swap');
+
+.hero-container {
+    position: relative;
+    /* Usamos una imagen abstracta oscura de alta calidad de fondo */
+    background-image: url('https://images.unsplash.com/photo-1614064641936-3899d907016ea?q=80&w=2000&auto=format&fit=crop'); 
+    background-size: cover;
+    background-position: center;
+    border-radius: 20px;
+    padding: 60px 40px;
+    margin-bottom: 30px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+    overflow: hidden;
+    font-family: 'Inter', sans-serif;
+}
+
+.hero-overlay {
+    position: absolute;
+    top: 0; left: 0; right: 0; bottom: 0;
+    /* Un gradiente que va de negro sólido a transparente para que el texto se lea perfecto */
+    background: linear-gradient(90deg, rgba(11, 14, 20, 0.95) 0%, rgba(11, 14, 20, 0.6) 50%, rgba(11, 14, 20, 0.1) 100%);
+    z-index: 1;
+}
+
+.hero-content {
+    position: relative;
+    z-index: 2;
+}
+
+.hero-badge {
+    display: inline-block;
+    background: linear-gradient(135deg, #0284c7, #38bdf8); /* El azul premium */
+    color: white;
+    padding: 6px 16px;
+    border-radius: 30px;
+    font-size: 0.75rem;
+    font-weight: 800;
+    letter-spacing: 1.5px;
+    margin-bottom: 20px;
+    text-transform: uppercase;
+    box-shadow: 0 4px 15px rgba(56, 189, 248, 0.4);
+}
+
+.hero-title {
+    font-size: 3.5rem;
+    font-weight: 800;
+    color: #ffffff;
+    margin-bottom: 10px;
+    line-height: 1.1;
+    letter-spacing: -1.5px;
+}
+
+.hero-subtitle {
+    font-size: 1.2rem;
+    color: #94a3b8;
+    font-weight: 300;
+    max-width: 600px;
+    line-height: 1.5;
+}
+</style>
+
+<div class="hero-container">
+    <div class="hero-overlay"></div>
+    <div class="hero-content">
+        <div class="hero-badge">✨ Inteligencia Artificial</div>
+        <div class="hero-title">Centro de<br>Comando PepsiCo</div>
+        <div class="hero-subtitle">Monitorización de Inventario y Demanda en el Valle de México. Resolviendo logística compleja a través de modelos predictivos y visualización geoespacial en tiempo real.</div>
+    </div>
+</div>
+""", unsafe_allow_html=True)
+
+# Borramos la alerta de info anterior y dejamos que el banner haga el trabajo visual
+st.divider()
 
 # --- INSIGHTS TRADUCIDOS ---
 st.info("💡 **Análisis del Sistema:** " + 
