@@ -96,7 +96,6 @@ def custom_metric_card(label, value, delta=None, delta_positive=True, is_accent=
         delta_class = "delta-positive" if delta_positive else "delta-negative"
         delta_html = f'<div class="titanium-delta {delta_class}">{delta}</div>'
     
-    # El parámetro 'title' en el div crea un tooltip nativo sencillo
     st.markdown(f"""
     <div class="titanium-card" title="{help_text}">
         <div class="titanium-label">{label} ℹ️</div>
