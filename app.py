@@ -24,7 +24,39 @@ zona_sel = st.sidebar.multiselect("Nodos Metropolitanos:", options=list(df['Ubic
 
 prod_sel = st.sidebar.multiselect("Carga Comercial (SKUs):", options=list(df['Producto'].unique()), default=['Sabritas Original', 'Pepsi Black', 'Doritos Incógnita'])
 
-df_f = df[(df['Ubicación'].isin(zona_sel)) & (df['Producto'].isin(prod_sel))]
+# --- NUEVO: Rango Temporal ---
+st.sidebar.markdown("### ⏱️ Rango Temporal")
+min_date = df['Fecha'].min().date()
+max_date = df['Fecha'].max().date()
+
+date_range = st.sidebar.date_input(
+    "Ventana de análisis:",
+    value=(min_date, max_date),
+    min_value=min_date,
+    max_value=max_date
+)
+
+# Lógica de fechas (Streamlit devuelve 1 o 2 valores dependiendo de si el usuario ya hizo clic)
+if len(date_range) == 2:
+    start_date, end_date = date_range
+else:
+    start_date, end_date = date_range[0], date_range[0]
+
+start_date = pd.to_datetime(start_date)
+end_date = pd.to_datetime(end_date)
+
+# Filtro Maestro Multivariable
+df_f = df[
+    (df['Ubicación'].isin(zona_sel)) & 
+    (df['Producto'].isin(prod_sel)) &
+    (df['Fecha'] >= start_date) & 
+    (df['Fecha'] <= end_date)
+]
+
+# Validación de seguridad: Si el usuario filtra tanto que se queda sin datos
+if df_f.empty:
+    st.warning("⚠️ No hay datos para los filtros seleccionados. Amplía el rango temporal o selecciona otros nodos.")
+    st.stop() # Esto detiene el código para que las gráficas no marquen error
 
 # --- 4. HEADER Y KPIs ---
 st.write("##") # Espacio extra para que no se corte el título
