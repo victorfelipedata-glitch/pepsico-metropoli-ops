@@ -67,14 +67,26 @@ if df_f.empty:
     st.stop()
 
 
-# --- 4. ENCABEZADO CENTRAL ESTILO SAMSUNG (HERO BANNER) ---
+# --- 4. ENCABEZADO CENTRAL ESTILO SAMSUNG (HERO BANNER CON ANIMACIONES) ---
 st.markdown("""
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;500;800&display=swap');
 
+/* 1. Definición de las Animaciones CSS */
+@keyframes fadeInUp {
+    from { opacity: 0; transform: translateY(30px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes pulseGlow {
+    0% { box-shadow: 0 0 10px rgba(56, 189, 248, 0.2); }
+    50% { box-shadow: 0 0 25px rgba(56, 189, 248, 0.8); }
+    100% { box-shadow: 0 0 10px rgba(56, 189, 248, 0.2); }
+}
+
+/* 2. Estilos del Contenedor */
 .hero-container {
     position: relative;
-    /* Usamos una imagen abstracta oscura de alta calidad de fondo */
     background-image: url('https://images.unsplash.com/photo-1614064641936-3899d907016ea?q=80&w=2000&auto=format&fit=crop'); 
     background-size: cover;
     background-position: center;
@@ -89,7 +101,6 @@ st.markdown("""
 .hero-overlay {
     position: absolute;
     top: 0; left: 0; right: 0; bottom: 0;
-    /* Un gradiente que va de negro sólido a transparente para que el texto se lea perfecto */
     background: linear-gradient(90deg, rgba(11, 14, 20, 0.95) 0%, rgba(11, 14, 20, 0.6) 50%, rgba(11, 14, 20, 0.1) 100%);
     z-index: 1;
 }
@@ -99,9 +110,10 @@ st.markdown("""
     z-index: 2;
 }
 
+/* 3. Aplicación de animaciones a los textos */
 .hero-badge {
     display: inline-block;
-    background: linear-gradient(135deg, #0284c7, #38bdf8); /* El azul premium */
+    background: linear-gradient(135deg, #0284c7, #38bdf8);
     color: white;
     padding: 6px 16px;
     border-radius: 30px;
@@ -110,7 +122,9 @@ st.markdown("""
     letter-spacing: 1.5px;
     margin-bottom: 20px;
     text-transform: uppercase;
-    box-shadow: 0 4px 15px rgba(56, 189, 248, 0.4);
+    /* Aparece flotando y luego se queda pulsando */
+    animation: fadeInUp 0.8s ease-out forwards, pulseGlow 3s infinite alternate 0.8s;
+    opacity: 0; /* Empieza invisible para que la animación se note */
 }
 
 .hero-title {
@@ -120,6 +134,9 @@ st.markdown("""
     margin-bottom: 10px;
     line-height: 1.1;
     letter-spacing: -1.5px;
+    /* Aparece con un pequeño retraso de 0.2s */
+    animation: fadeInUp 0.8s ease-out 0.2s forwards;
+    opacity: 0;
 }
 
 .hero-subtitle {
@@ -128,18 +145,23 @@ st.markdown("""
     font-weight: 300;
     max-width: 600px;
     line-height: 1.5;
+    /* Aparece al final con un retraso de 0.4s */
+    animation: fadeInUp 0.8s ease-out 0.4s forwards;
+    opacity: 0;
 }
 </style>
 
 <div class="hero-container">
     <div class="hero-overlay"></div>
     <div class="hero-content">
-        <div class="hero-badge">⚙️ Motor de Optimización Logística</div>
+        <div class="hero-badge">📊 Motor de Optimizacion Logistica</div>
         <div class="hero-title">Centro de<br>Comando PepsiCo</div>
         <div class="hero-subtitle">Monitorización de Inventario y Demanda en el Valle de México. Resolviendo logística compleja a través de modelos predictivos y visualización geoespacial en tiempo real.</div>
     </div>
 </div>
 """, unsafe_allow_html=True)
+
+st.divider()
 
 # Borramos la alerta de info anterior y dejamos que el banner haga el trabajo visual
 st.divider()
