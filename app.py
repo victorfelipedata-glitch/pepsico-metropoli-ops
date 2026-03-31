@@ -3,6 +3,7 @@ import pandas as pd
 import numpy as np
 import plotly.express as px
 import plotly.graph_objects as go
+from sklearn.linear_model import LinearRegression
 
 # --- IMPORTAMOS NUESTROS PROPIOS MÓDULOS ---
 from utils.styles import apply_cyber_theme, custom_metric_card
@@ -18,10 +19,6 @@ df = load_hyper_data()
 # --- 3. BARRA LATERAL (Filtros + SIMULADOR + TOOLTIPS) ---
 st.sidebar.image("https://upload.wikimedia.org/wikipedia/commons/thumb/0/0f/Pepsi_logo_2014.svg/512px-Pepsi_logo_2014.svg.png", width=120)
 
-st.sidebar.markdown("# 🔱 Filtros de Red")
-st.sidebar.write("Configura la vista de operaciones.")
-st.sidebar.divider()
-# ... (aquí sigue tu código normal de los expanders) ...
 st.sidebar.markdown("# 🔱 Filtros de Red")
 st.sidebar.write("Configura la vista de operaciones.")
 st.sidebar.divider()
@@ -68,18 +65,14 @@ if df_f.empty:
     st.warning("⚠️ No hay datos para los filtros seleccionados. Amplía el rango o selecciona otros nodos.")
     st.stop()
 
-st.sidebar.markdown("<br><br><br><br>", unsafe_allow_html=True)
-st.sidebar.caption("© 2026 PepsiCo Intelligence | Análisis de Datos")
-
 
 # --- 4. SECCIÓN 0: ENCABEZADO CENTRAL PROFESIONAL ---
 with st.container():
-    h_logo, h_title, h_stats = st.columns([1, 3, 1])
-    with h_logo:
-        st.image("https://upload.wikimedia.org/wikipedia/commons/thumb/a/a6/PepsiCo_logo.svg/1024px-PepsiCo_logo.svg.png", width=120)
+    h_title, h_stats = st.columns([4, 1])
+    
     with h_title:
         st.markdown("""
-        <div style="text-align: center;">
+        <div>
             <h1 style="margin-bottom: 0px; font-weight: 700;">Centro de Comando PepsiCo</h1>
             <p style="color: #94a3b8; font-size: 1.1rem; margin-top: 5px;">Monitorización de Inventario y Demanda | Zona Metropolitana</p>
         </div>
@@ -94,6 +87,7 @@ st.info("💡 **Análisis del Sistema:** " +
     f"Se recomienda asegurar la logística en la zona de **{df_f.groupby('Ubicación')['Ventas'].sum().idxmax()}** debido a su alto volumen proyectado.")
 
 st.divider()
+
 
 # --- 5. BLOQUE DE KPIs ---
 st.markdown("### 📊 Indicadores Clave de Red")
@@ -140,6 +134,7 @@ with c_radar:
     fig_radar.update_layout(polar=dict(radialaxis=dict(visible=True, range=[0, 100], color='gray'), bgcolor='rgba(0,0,0,0)'), showlegend=False, paper_bgcolor='rgba(0,0,0,0)', font=dict(color='#e2e8f0', size=11))
     st.plotly_chart(fig_radar, use_container_width=True)
 
+
 # --- 7. BLOQUE 2: TREEMAP MASIVO ---
 st.divider()
 st.markdown("### 🟦 Topografía de Mercado (Dominancia)", help="Jerarquía de ventas por zona (cuadros grandes) y producto (cuadros internos).")
@@ -147,6 +142,7 @@ fig_tree = px.treemap(df_f, path=[px.Constant("Valle de México"), 'Ubicación',
 fig_tree.update_layout(margin=dict(t=10, l=10, r=10, b=10), paper_bgcolor='rgba(0,0,0,0)', font=dict(color='#e2e8f0', size=13))
 fig_tree.update_traces(marker=dict(line=dict(color='#0d1117', width=3)), root_color="#0d1117")
 st.plotly_chart(fig_tree, use_container_width=True)
+
 
 # --- 8. BLOQUE 3: ANÁLISIS TEMPORAL Y ANOMALÍAS ---
 st.divider()
@@ -174,6 +170,47 @@ with c_anom:
     fig_anom.update_layout(paper_bgcolor='rgba(0,0,0,0)', plot_bgcolor='rgba(0,0,0,0)', font=dict(color='#e2e8f0', size=11), hovermode="x unified")
     st.plotly_chart(fig_anom, use_container_width=True)
 
+
+# --- NUEVO BLOQUE: PROYECCIÓN PREDICTIVA CON MACHINE LEARNING ---
+st.divider()
+st.markdown("### 🧠 Proyección Predictiva (Machine Learning)", help="Modelo de Regresión Lineal entrenado en tiempo real para pronosticar la demanda a 7 días.")
+
+df_ml = df_f.groupby('Fecha')['Ventas'].sum().reset_index()
+df_ml['Dias_Numericos'] = (df_ml['Fecha'] - df_ml['Fecha'].min()).dt.days
+
+if len(df_ml) > 3:
+    X = df_ml[['Dias_Numericos']]
+    y = df_ml['Ventas']
+    
+    modelo = LinearRegression()
+    modelo.fit(X, y)
+    
+    ultimo_dia = df_ml['Dias_Numericos'].max()
+    dias_futuros_num = pd.DataFrame({'Dias_Numericos': range(ultimo_dia + 1, ultimo_dia + 8)})
+    fechas_futuras = pd.date_range(start=df_ml['Fecha'].max() + pd.Timedelta(days=1), periods=7)
+    
+    predicciones = modelo.predict(dias_futuros_num)
+    tendencia = "al alza 📈" if modelo.coef_[0] > 0 else "a la baja 📉"
+    
+    c_pred, c_texto = st.columns([2, 1])
+    
+    with c_pred:
+        fig_ml = go.Figure()
+        fig_ml.add_trace(go.Scatter(x=df_ml['Fecha'], y=df_ml['Ventas'], mode='lines', name='Histórico Real', line=dict(color='#94a3b8', width=2)))
+        fig_ml.add_trace(go.Scatter(x=df_ml['Fecha'], y=modelo.predict(X), mode='lines', name='Ajuste ML', line=dict(color='#007a99', width=2, dash='dot')))
+        fig_ml.add_trace(go.Scatter(x=fechas_futuras, y=predicciones, mode='lines+markers', name='Pronóstico 7 Días', line=dict(color='#00d2ff', width=3), marker=dict(size=6)))
+        
+        fig_ml.update_layout(paper_bgcolor='rgba(0,0,0,0)', plot_bgcolor='rgba(0,0,0,0)', font=dict(color='#e2e8f0', size=11), hovermode="x unified", margin=dict(t=10, b=10, l=10, r=10))
+        st.plotly_chart(fig_ml, use_container_width=True)
+        
+    with c_texto:
+        st.markdown("#### Resultado del Modelo")
+        st.write("El algoritmo analiza la dispersión histórica y calcula la línea de mejor ajuste para proyectar requerimientos logísticos.")
+        st.info(f"**Insight Predictivo:**\nLa tendencia matemática para esta red va **{tendencia}**.\n\nPara el día {fechas_futuras[-1].strftime('%d de %b')}, el modelo estima una demanda de **{int(predicciones[-1])} unidades**.")
+else:
+    st.warning("⚠️ No hay suficientes datos en este rango para entrenar el modelo predictivo. Amplía la ventana de análisis.")
+
+
 # --- 9. BLOQUE 4: TERMINAL LOGÍSTICA ---
 st.divider()
 with st.expander("### 📋 Terminal de Acción Logística", expanded=True):
@@ -191,6 +228,7 @@ with st.expander("### 📋 Terminal de Acción Logística", expanded=True):
         csv = resumen.to_csv(index=False).encode('utf-8')
         st.download_button(label="📥 Descargar Reporte CSV", data=csv, file_name='pepsico_reporte_metropolitano.csv', mime='text/csv')
         st.info("Formato listo para integración con SAP/Excel.")
+
 
 # --- 10. FOOTER CLASIFICADO ---
 st.divider()
