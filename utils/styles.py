@@ -88,7 +88,7 @@ def apply_cyber_theme():
     """, unsafe_allow_html=True)
 
 # Nueva Función auxiliar para crear las tarjetas
-def custom_metric_card(label, value, delta=None, delta_positive=True, is_accent=False):
+def custom_metric_card(label, value, delta=None, delta_positive=True, is_accent=False, help_text=""):
     value_class = "titanium-accent-value" if is_accent else "titanium-value"
     
     delta_html = ""
@@ -96,9 +96,10 @@ def custom_metric_card(label, value, delta=None, delta_positive=True, is_accent=
         delta_class = "delta-positive" if delta_positive else "delta-negative"
         delta_html = f'<div class="titanium-delta {delta_class}">{delta}</div>'
     
+    # El parámetro 'title' en el div crea un tooltip nativo sencillo
     st.markdown(f"""
-    <div class="titanium-card">
-        <div class="titanium-label">{label}</div>
+    <div class="titanium-card" title="{help_text}">
+        <div class="titanium-label">{label} ℹ️</div>
         <div class="{value_class}">{value}</div>
         {delta_html}
     </div>
