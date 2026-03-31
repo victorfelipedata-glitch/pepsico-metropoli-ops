@@ -185,3 +185,12 @@ with st.expander("### 📋 Terminal de Acción Logística", expanded=True):
         csv = resumen.to_csv(index=False).encode('utf-8')
         st.download_button(label="📥 Descargar Reporte CSV", data=csv, file_name='pepsico_reporte_metropolitano.csv', mime='text/csv')
         st.info("Formato listo para integración con SAP/Excel.")
+
+# --- 10. FOOTER CLASIFICADO ---
+st.divider()
+st.markdown("""
+<div style="text-align: center; color: #94a3b8; font-size: 0.9rem; margin-top: 20px;">
+    © 2026 PepsiCo Intelligence System <br>
+    Modelo de monitorización desarrollado por <b style="color: #00d2ff;">Data Analyst Víctor Antonio</b>
+</div>
+""", unsafe_allow_html=True)
